@@ -29,8 +29,23 @@ Log.Logger = new LoggerConfiguration()
 							.CreateLogger();
 var ws = new ClientWebSocket();
 Log.Information("Connecting to server");
-await ws.ConnectAsync(new Uri("ws://localhost:16431/"),
-  CancellationToken.None);
+var retry = 1;
+while (true)
+{
+	try
+	{
+		await ws.ConnectAsync(new Uri("ws://localhost:16431/"),
+			CancellationToken.None);
+		break;
+	}
+	catch (Exception ex)
+	{
+		Log.Error(ex, "Failed to connect to server. Retry #{retry}", retry++);
+		await Task.Delay(500);
+	}
+}
+
+
 Log.Information("Connected to server");
 CancellationTokenSource cts = new CancellationTokenSource();
 CancellationToken ct = cts.Token;
@@ -40,7 +55,8 @@ var menuTask = Task.Run(async () =>
 {
 	while (true)
 	{
-		while (clientState.IsExpectingResponse) 		{
+		while (clientState.IsExpectingResponse)
+		{
 			Console.WriteLine("Waiting for server response...");
 			await Task.Delay(100);
 		}
@@ -73,7 +89,7 @@ var menuTask = Task.Run(async () =>
 				Log.Information("Exit selected");
 				await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "User requested close", CancellationToken.None);
 				cts.Cancel();
-				await listenerTask;	
+				await listenerTask;
 				return;
 			case MenuChoices.InvalidChoice:
 				Log.Warning("Invalid choice selected");
@@ -126,11 +142,11 @@ static MenuChoices GetUserChoicAndVerify(ClientState clientState)
 				choice = MenuChoices.InvalidChoice;
 			break;
 		case MenuChoices.UpdateResources:
-			if (clientState.IsSafeMode &&  !clientState.IsLoggedIn)
+			if (clientState.IsSafeMode && !clientState.IsLoggedIn)
 				choice = MenuChoices.InvalidChoice;
 			break;
 		case MenuChoices.SendGift:
-			if (clientState.IsSafeMode &&  !clientState.IsLoggedIn)
+			if (clientState.IsSafeMode && !clientState.IsLoggedIn)
 				choice = MenuChoices.InvalidChoice;
 			break;
 		default:
