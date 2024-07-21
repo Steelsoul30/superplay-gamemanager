@@ -1,9 +1,9 @@
 ﻿using System.Net.WebSockets;
 
-namespace Manager
+namespace Server.Services
 {
 	public interface IGameService
 	{
-		public Task AddSocket(WebSocket socket);
+		public Task ListenOnSocket(WebSocket socket);
 	}
 }

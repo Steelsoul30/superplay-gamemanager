@@ -1,7 +1,7 @@
-using Manager;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Server.DB;
+using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
@@ -30,7 +30,7 @@ app.MapGet("/", async (HttpContext context, IGameService gameService) =>
 	}
 
 	using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-	await gameService.AddSocket(webSocket);
+	await gameService.ListenOnSocket(webSocket);
 });
 
 app.Run();
