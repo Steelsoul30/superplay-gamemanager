@@ -8,8 +8,8 @@ using System;
 using Shared.Helpers;
 using System.Text.Json;
 using Client;
-using System.Net.Sockets;
-using System.Text;
+using Shared.Models.Messages;
+using static Shared.Constants.Constants;
 
 var deviceId = args.FirstOrDefault() ?? "1234";
 var clientState = new ClientState
@@ -18,6 +18,7 @@ var clientState = new ClientState
 	IsSafeMode = args.Contains("--safemode")
 };
 Listener.ClientState = clientState;
+var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 Log.Logger = new LoggerConfiguration()
 							.WriteTo.Console()
 
@@ -69,18 +70,19 @@ var menuTask = Task.Run(async () =>
 			Console.WriteLine("Please log in");
 		}
 		DisplayMenu(clientState);
-		var choice = GetUserChoicAndVerify(clientState);
+		var choice = GetUserChoiceAndVerify(clientState);
 		switch (choice)
 		{
 			case MenuChoices.Login:
 				Log.Information("Login selected");
-				var request = new Shared.Models.Messages.LoginRequest(new Shared.Models.Messages.LoginRequestPayload(deviceId));
-				var data = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+				var request = new LoginRequest(new LoginRequestPayload(deviceId));
+				var data = JsonSerializer.Serialize(request, options);
 				clientState.IsExpectingResponse = true;
 				await ws.SendAsync(data);
 				break;
 			case MenuChoices.UpdateResources:
 				Log.Information("Update Resources selected");
+				var updateRequest = new UpdateResourcesRequest(new UpdateResourcesRequestPayload(Coins, 100));
 				break;
 			case MenuChoices.SendGift:
 				Log.Information("Send Gift selected");
@@ -129,7 +131,7 @@ static void DisplayMenu(ClientState clientState)
 	Console.Write("\nEnter your selection: ");
 }
 
-static MenuChoices GetUserChoicAndVerify(ClientState clientState)
+static MenuChoices GetUserChoiceAndVerify(ClientState clientState)
 {
 	var choiceStr = Console.ReadLine();
 	var choice = Enum.TryParse(choiceStr, out MenuChoices choiceTmp) && Enum.IsDefined(typeof(MenuChoices), choiceTmp)
