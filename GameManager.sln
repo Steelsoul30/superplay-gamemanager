@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{041204A6-A77D-4C2C-A8B5-B0F8AD9097E3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Manager\Shared.csproj", "{24831787-5781-4420-AC9B-04F1AA9F80C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{F6831A0F-5400-46DA-83D5-C2526CF8E59B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{041204A6-A77D-4C2C-A8B5-B0F8AD9097E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{041204A6-A77D-4C2C-A8B5-B0F8AD9097E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{041204A6-A77D-4C2C-A8B5-B0F8AD9097E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{041204A6-A77D-4C2C-A8B5-B0F8AD9097E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24831787-5781-4420-AC9B-04F1AA9F80C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24831787-5781-4420-AC9B-04F1AA9F80C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24831787-5781-4420-AC9B-04F1AA9F80C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24831787-5781-4420-AC9B-04F1AA9F80C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6831A0F-5400-46DA-83D5-C2526CF8E59B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6831A0F-5400-46DA-83D5-C2526CF8E59B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6831A0F-5400-46DA-83D5-C2526CF8E59B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6831A0F-5400-46DA-83D5-C2526CF8E59B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DCB1DACD-895E-409C-8EAD-56D78CAC20A3}
+	EndGlobalSection
+EndGlobal
