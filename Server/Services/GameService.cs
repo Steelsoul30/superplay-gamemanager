@@ -116,40 +116,47 @@ namespace Server.Services
 			if (player == null)
 			{
 				logger.LogWarning("Player not logged in");
-				return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(0, Error, "Player not logged in"));
+				return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(Empty, 0, Error, "Player not logged in"));
 			}
 			var playerEntity = await context.Players.Where(p => p.PlayerName == player).FirstOrDefaultAsync();
 			if (playerEntity == null)
 			{
 				logger.LogError("Player not found in database");
-				return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(0, Error, "Player not found. Internal Error"));
+				return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(Empty, 0, Error, "Player not found. Internal Error"));
 			}
+
+            var playerCopy = new Player()
+                { PlayerName = playerEntity.PlayerName, Coins = playerEntity.Coins, Rolls = playerEntity.Rolls };
 			switch (resourceType)
 			{
 				case Coins:
-					playerEntity.Coins += resourceValue;
-					if (playerEntity.Coins < 0)
+                    playerCopy.Coins += resourceValue;
+					if (playerCopy.Coins < 0)
 					{
 						logger.LogWarning("Player {Player} has insufficient coins", player);
-						return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(playerEntity.Coins, Error, "Insufficient coins"));
+						return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(Coins, playerCopy.Coins, Error, "Insufficient coins"));
 					}
 					break;
 				case Rolls:
-					playerEntity.Rolls += resourceValue;
-					if (playerEntity.Rolls < 0)
+                    playerCopy.Rolls += resourceValue;
+					if (playerCopy.Rolls < 0)
 					{
 						logger.LogWarning("Player {Player} has insufficient rolls", player);
-						return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(playerEntity.Rolls, Error, "Insufficient rolls"));
+						return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(Rolls, playerCopy.Rolls, Error, "Insufficient rolls"));
 					}
 					break;
 				default:
 					logger.LogWarning("Unknown resource type requested");
-					return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(0, Error, "Unknown resource type"));
+					return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(Empty, 0, Error, "Unknown resource type"));
 			}
-			context.Players.Update(playerEntity);
+			playerEntity.Coins = playerCopy.Coins;
+			playerEntity.Rolls = playerCopy.Rolls;
 			await context.SaveChangesAsync();
 			logger.LogInformation("Player {Player} updated {ResourceType} by {ResourceValue}", player, resourceType, resourceValue);
-			return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(resourceType == Coins ? playerEntity.Coins : playerEntity.Rolls, Success, string.Empty));
+			return new UpdateResourcesResponse(new UpdateResourcesResponsePayload(resourceType == Coins ? Coins : Rolls,
+                resourceType == Coins ? playerEntity.Coins : playerEntity.Rolls,
+                Success,
+                string.Empty));
 		}
 
 		private async Task<string> GetPlayerNameByDeviceId(string deviceId)

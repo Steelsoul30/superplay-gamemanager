@@ -2,9 +2,9 @@
 
 namespace Client.Menu
 {
-	internal enum MenuChoices
+	internal enum MainMenu
 	{
-		[Description("Invalid Choice"), ]
+		[Description("Invalid Choice")]
 		InvalidChoice,
 		[Description("Login")]
 		Login,
@@ -15,4 +15,16 @@ namespace Client.Menu
 		[Description("Exit")]
 		Exit	
 	}
+
+	internal enum ResourceType
+    {
+        [Description("Invalid Choice")]
+        InvalidChoice,
+        [Description("Coins")]
+        Coins,
+        [Description("Rolls")]
+		Rolls,
+		[Description("Back")]
+		Back
+    }
 }

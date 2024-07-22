@@ -16,7 +16,11 @@ namespace Client
 	internal static class Listener
 	{
 		public static ClientState ClientState { get; set; } = new ClientState();
-		public static async Task Listen(WebSocket ws, CancellationToken ct)
+
+        public static JsonSerializerOptions Options { get; } = new JsonSerializerOptions
+            { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+        public static async Task Listen(WebSocket ws, CancellationToken ct)
 		{
 			var buffer = new byte[1024 * 4];
 			while (true)
@@ -33,12 +37,7 @@ namespace Client
 						break;
 					}
 					var data = Encoding.UTF8.GetString(buffer, 0, result.Count);
-					if (data == null)
-					{
-						Log.Warning("Data is null");
-						continue;
-					}
-					ProcessMessage(data);
+                    ProcessMessage(data);
 				}
 				catch (WebSocketException ex)
 				{
@@ -65,25 +64,37 @@ namespace Client
 			switch (command)
 			{
 				case LoginCommand:
-					var response = JsonSerializer.Deserialize<LoginResponse>(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }) ?? throw new SerializationException($"Invalid response for {command} command");
+					var response = JsonSerializer.Deserialize<LoginResponse>(data, Options) ?? throw new SerializationException($"Invalid response for {command} command");
 					Log.Information("Login response received: {response}", response);
 					var payload = response.Payload;
-					if (payload == null)
-					{
-						Log.Error("Payload is null");
-					}
-					else if (payload.Status == Error)
-					{
-						Log.Error("Login request unsuccessful. Received error {error}", payload.Error);
-					}
-					else if (payload.Status == Success)
-					{
-						Log.Information("Login request successful. Received player name {PlayerName}", payload.PlayerName);
-						ClientState.PlayerName = payload.PlayerName;
-						ClientState.IsLoggedIn = true;
-					}
+					if (payload.Status == Error)
+                    {
+                        Log.Error("Login request unsuccessful. Received error {error}", payload.Error);
+                    }
+                    else if (payload.Status == Success)
+                    {
+                        Log.Information("Login request successful. Received player name {PlayerName}", payload.PlayerName);
+                        ClientState.PlayerName = payload.PlayerName;
+                        ClientState.IsLoggedIn = true;
+                    }
 					ClientState.IsExpectingResponse = false;
 					break;
+				case UpdateResourcesCommand:
+					var updateResponse = JsonSerializer.Deserialize<UpdateResourcesResponse>(data, Options) ?? throw new SerializationException($"Invalid response for {command} command");
+                    Log.Information("Update resources response received: {updateResponse}", updateResponse);
+                    var updatePayload = updateResponse.Payload;
+                    if (updatePayload.Status == Error)
+                    {
+                        Log.Error("Update resources request unsuccessful. Received error {error}", updatePayload.Error);
+                    }
+                    else if (updatePayload.Status == Success)
+                    {
+                        Log.Information("Update resources request successful. Received new resource value {ResourceValue} for {Type}",
+                            updatePayload.Balance,
+                            updatePayload.ResourceType);
+                    }
+                    ClientState.IsExpectingResponse = false;
+                    break;
 				case Empty:
 					Log.Warning("message did not contain a command");
 					break;
