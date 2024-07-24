@@ -38,6 +38,7 @@ namespace Client
 				catch (WebSocketException ex)
 				{
 					Log.Error("Socket closed unexpectedly - {ex}", ex.Message);
+					ClientState.IsExpectingResponse = false;
 					break;
 				}
 				catch (OperationCanceledException)

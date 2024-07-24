@@ -68,7 +68,12 @@ var menuTask = Task.Run(async () =>
                 Log.Information("Login selected");
                 var request = new LoginRequest(new LoginRequestPayload(deviceId));
                 clientState.IsExpectingResponse = true;
-                await ws.SendAsync(request);
+                if (ws.State != WebSocketState.Open)
+                {
+	                Log.Error("WebSocket is not open");
+	                break;
+                }
+				await ws.SendAsync(request);
                 break;
             case MainMenu.UpdateResources:
                 Log.Information("Update Resources selected");
@@ -91,6 +96,11 @@ var menuTask = Task.Run(async () =>
                     break;
                 var resourceTypeStr = resourceType.ToString().ToLower();
                 var updateRequest = new UpdateResourcesRequest(new UpdateResourcesRequestPayload(resourceTypeStr, amount));
+                if (ws.State != WebSocketState.Open)
+				{
+					Log.Error("WebSocket is not open");
+					break;
+				}
                 await ws.SendAsync(updateRequest);
                 break;
             case MainMenu.SendGift:
@@ -116,11 +126,21 @@ var menuTask = Task.Run(async () =>
 	                break;
                 resourceTypeStr = resourceType.ToString().ToLower();
                 var sendGiftRequest = new SendGiftRequest(new SendGiftRequestPayload(resourceTypeStr, amount, recipient));
-                await ws.SendAsync(sendGiftRequest);
+                if (ws.State != WebSocketState.Open)
+                {
+	                Log.Error("WebSocket is not open");
+	                break;
+                }
+				await ws.SendAsync(sendGiftRequest);
 				break;
             case MainMenu.Exit:
                 Log.Information("Exit selected");
-                await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "User requested close", CancellationToken.None);
+                if (ws.State != WebSocketState.Open)
+                {
+	                Log.Error("WebSocket is not open");
+	                break;
+                }
+				await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "User requested close", CancellationToken.None);
                 cts.Cancel();
                 await listenerTask;
                 return;
