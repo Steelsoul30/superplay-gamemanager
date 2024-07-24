@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared.Constants
+﻿namespace Shared.Constants
 {
 	public static class Constants
 	{
@@ -17,6 +11,7 @@ namespace Shared.Constants
 		public const string Payload = "payload";
 		public const string LoginCommand = "login";
 		public const string UpdateResourcesCommand = "updateResources";
+		public const string SendGiftCommand = "sendGift";
 		public const string Empty = "";
         public const string Coins = "coins";
 		public const string Rolls = "rolls";

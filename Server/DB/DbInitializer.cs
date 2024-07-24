@@ -11,9 +11,9 @@
 			}
 			var players = new Player[]
 			{
-				new() { PlayerId = 1, PlayerName = "John", DeviceID = "1234", Coins = 100, Rolls = 50},
-				new() { PlayerId = 2, PlayerName = "Jane", DeviceID = "5678", Coins = 200, Rolls = 100},
-				new() { PlayerId = 3, PlayerName = "Jim", DeviceID = "9012", Coins = 300, Rolls = 150},
+				new() { Id = 1, PlayerName = "John", DeviceID = "1234", Coins = 100, Rolls = 50},
+				new() { Id = 2, PlayerName = "Jane", DeviceID = "5678", Coins = 200, Rolls = 100},
+				new() { Id = 3, PlayerName = "Jim", DeviceID = "9012", Coins = 300, Rolls = 150},
 			};
 			context.Players.AddRange(players);
 			context.SaveChanges();

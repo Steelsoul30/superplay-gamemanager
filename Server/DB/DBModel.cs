@@ -14,7 +14,7 @@ namespace Server.DB
 
 	public class Player
 	{
-		public int PlayerId { get; set; }
+		public int Id { get; set; }
 		public string PlayerName { get; set; }
 		public string DeviceID { get; set; }
 		public int Coins { get; set; }

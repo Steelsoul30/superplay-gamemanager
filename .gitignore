@@ -365,3 +365,4 @@ FodyWeavers.xsd
 /Server/LocalGameManagerDatabase.db
 /Server/LocalGameManagerDatabase.db-shm
 /Server/LocalGameManagerDatabase.db-wal
+*.logs

@@ -1,15 +1,12 @@
 ﻿using Serilog;
 using Serilog.Events;
-using Serilog.Formatting.Json;
 using System.Net.WebSockets;
 using Client.Menu;
 using System.ComponentModel;
-using System;
 using Shared.Helpers;
 using System.Text.Json;
 using Client;
 using Shared.Models.Messages;
-using static Shared.Constants.Constants;
 
 var deviceId = args.FirstOrDefault() ?? "1234";
 var clientState = new ClientState
@@ -59,16 +56,10 @@ var menuTask = Task.Run(async () =>
         while (clientState.IsExpectingResponse)
         {
             Console.WriteLine("Waiting for server response...");
-            await Task.Delay(100);
+            await Task.Delay(500);
         }
-        if (clientState.IsLoggedIn)
-        {
-            Console.WriteLine($"Logged in as {clientState.PlayerName}");
-        }
-        else
-        {
-            Console.WriteLine("Please log in");
-        }
+
+        Console.WriteLine(clientState.IsLoggedIn ? $"Logged in as {clientState.PlayerName}" : "Please log in");
         DisplayMenu(clientState);
         var choice = GetChoiceMainMenu(clientState);
         switch (choice)
@@ -76,9 +67,8 @@ var menuTask = Task.Run(async () =>
             case MainMenu.Login:
                 Log.Information("Login selected");
                 var request = new LoginRequest(new LoginRequestPayload(deviceId));
-                var data = JsonSerializer.Serialize(request, options);
                 clientState.IsExpectingResponse = true;
-                await ws.SendAsync(data);
+                await ws.SendAsync(request);
                 break;
             case MainMenu.UpdateResources:
                 Log.Information("Update Resources selected");
@@ -101,13 +91,33 @@ var menuTask = Task.Run(async () =>
                     break;
                 var resourceTypeStr = resourceType.ToString().ToLower();
                 var updateRequest = new UpdateResourcesRequest(new UpdateResourcesRequestPayload(resourceTypeStr, amount));
-                var updateData = JsonSerializer.Serialize(updateRequest, options);
-                clientState.IsExpectingResponse = true;
-                await ws.SendAsync(updateData);
+                await ws.SendAsync(updateRequest);
                 break;
             case MainMenu.SendGift:
                 Log.Information("Send Gift selected");
-                break;
+                DisplayUpdateSubMenu();
+                while (true)
+                {
+	                resourceType = GetChoiceUpdateMenu();
+	                if (resourceType == ResourceType.InvalidChoice)
+	                {
+		                Console.WriteLine("Invalid choice. Please try again.");
+		                continue;
+	                }
+	                break;
+                }
+                if (resourceType == ResourceType.Back)
+	                break;
+                amount = GetAmount();
+                if (amount == 0)
+	                break;
+                var recipient = GetRecipient();
+                if (recipient == 0)
+	                break;
+                resourceTypeStr = resourceType.ToString().ToLower();
+                var sendGiftRequest = new SendGiftRequest(new SendGiftRequestPayload(resourceTypeStr, amount, recipient));
+                await ws.SendAsync(sendGiftRequest);
+				break;
             case MainMenu.Exit:
                 Log.Information("Exit selected");
                 await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "User requested close", CancellationToken.None);
@@ -123,10 +133,11 @@ var menuTask = Task.Run(async () =>
 });
 
 await menuTask;
+return;
 
 static void DisplayUpdateSubMenu()
 {
-    Console.WriteLine("Please choose a resource to update:\n");
+    Console.WriteLine("Please choose a resource:\n");
     foreach (ResourceType resource in Enum.GetValues(typeof(ResourceType)))
     {
         if (resource == ResourceType.InvalidChoice)
@@ -178,6 +189,14 @@ static int GetAmount()
     int amount;
     while (!int.TryParse(Console.ReadLine(), out amount)) Console.WriteLine("Only integers allowed");
     return amount;
+}
+
+static int GetRecipient()
+{
+	Console.Write("Enter the recipient's Id. (0) to cancel: ");
+	int recipientId;
+	while (!int.TryParse(Console.ReadLine(), out recipientId)) Console.WriteLine("Only numbers allowed");
+	return recipientId;
 }
 
 static MainMenu GetChoiceMainMenu(ClientState clientState)
