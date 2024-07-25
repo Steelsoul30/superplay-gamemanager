@@ -15,7 +15,6 @@ var clientState = new ClientState
     IsSafeMode = args.Contains("--safemode")
 };
 Listener.ClientState = clientState;
-var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 Log.Logger = new LoggerConfiguration()
                             .WriteTo.Console()
 
@@ -138,7 +137,7 @@ var menuTask = Task.Run(async () =>
                 if (ws.State != WebSocketState.Open)
                 {
 	                Log.Error("WebSocket is not open");
-	                break;
+	                return;
                 }
 				await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "User requested close", CancellationToken.None);
                 cts.Cancel();
@@ -225,15 +224,15 @@ static MainMenu GetChoiceMainMenu(ClientState clientState)
     switch (choice)
     {
         case MainMenu.Login:
-            if (clientState.IsSafeMode && clientState.IsLoggedIn)
+            if (clientState is { IsSafeMode: true, IsLoggedIn: true })
                 choice = MainMenu.InvalidChoice;
             break;
         case MainMenu.UpdateResources:
-            if (clientState.IsSafeMode && !clientState.IsLoggedIn)
+            if (clientState is { IsSafeMode: true, IsLoggedIn: false })
                 choice = MainMenu.InvalidChoice;
             break;
         case MainMenu.SendGift:
-            if (clientState.IsSafeMode && !clientState.IsLoggedIn)
+            if (clientState is { IsSafeMode: true, IsLoggedIn: false })
                 choice = MainMenu.InvalidChoice;
             break;
     }

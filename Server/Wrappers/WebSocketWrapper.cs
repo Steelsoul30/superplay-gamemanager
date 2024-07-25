@@ -1,5 +1,4 @@
 ﻿using Server.Interfaces;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text;
@@ -16,7 +15,7 @@ public class WebSocketWrapper(WebSocket webSocket) : IWebSocketWrapper
 		return await webSocket.ReceiveAsync(buffer, cancellationToken);
 	}
 
-	public async Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken)
+	private async Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken)
 	{
 		await webSocket.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
 	}

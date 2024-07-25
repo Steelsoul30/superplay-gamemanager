@@ -1,5 +1,4 @@
 ﻿using Shared.Models.Messages;
-using System.Net.WebSockets;
 
 namespace Server.Interfaces;
 

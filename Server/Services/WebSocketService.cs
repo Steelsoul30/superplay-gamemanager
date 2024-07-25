@@ -1,12 +1,8 @@
 ﻿using System.Net.WebSockets;
 using System.Runtime.Serialization;
-using System.Text.Json;
 using System.Text;
-using Server.Factories;
 using Server.Interfaces;
 using Shared.Helpers;
-using Shared.Models.Messages;
-using static Shared.Constants.Constants;
 
 namespace Server.Services;
 
@@ -36,7 +32,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, IEnumerable<ICom
 				}
 				await handler.HandleAsync(data, socket);
 			}
-			catch (WebSocketException ex)
+			catch (WebSocketException)
 			{
 				logger.LogError("Socket closed unexpectedly");
 				break;

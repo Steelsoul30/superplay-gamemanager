@@ -5,7 +5,6 @@ using Server.DB;
 using Server.Factories;
 using Server.Interfaces;
 using Server.Services;
-using Server.Wrappers;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();

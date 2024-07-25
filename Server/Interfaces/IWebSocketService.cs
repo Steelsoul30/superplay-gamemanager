@@ -1,6 +1,4 @@
-﻿using System.Net.WebSockets;
-
-namespace Server.Interfaces;
+﻿namespace Server.Interfaces;
 
 public interface IWebSocketService
 {
