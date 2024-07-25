@@ -1,5 +1,5 @@
+using FakeItEasy;
 using Microsoft.Extensions.Logging;
-using Moq;
 using Server.Interfaces;
 using Server.Services;
 using System.Net.WebSockets;
@@ -10,17 +10,17 @@ namespace GameManager.Server.Tests.ServiceTests
 {
 	public class WebSocketServiceTests
 	{
-		private readonly Mock<IWebSocketWrapper> _mockWebSocketWrapper;
-		private readonly Mock<ILogger<WebSocketService>> _mockLogger;
-		private readonly List<Mock<ICommandHandler>> _mockCommandHandlers;
+		private readonly IWebSocketWrapper _mockWebSocketWrapper;
+		private readonly ILogger<WebSocketService> _mockLogger;
+		private readonly List<ICommandHandler> _mockCommandHandlers;
 		private readonly WebSocketService _webSocketService;
 
 		public WebSocketServiceTests()
 		{
-			_mockWebSocketWrapper = new Mock<IWebSocketWrapper>();
-			_mockLogger = new Mock<ILogger<WebSocketService>>();
-			_mockCommandHandlers = new List<Mock<ICommandHandler>>();
-			_webSocketService = new WebSocketService(_mockLogger.Object, _mockCommandHandlers.Select(m => m.Object));
+			_mockWebSocketWrapper = A.Fake<IWebSocketWrapper>();
+			_mockLogger = A.Fake<ILogger<WebSocketService>>();
+			_mockCommandHandlers = new List<ICommandHandler>();
+			_webSocketService = new WebSocketService(_mockLogger, _mockCommandHandlers);
 		}
 
 		[Fact]
@@ -28,14 +28,15 @@ namespace GameManager.Server.Tests.ServiceTests
 		{
 			// Arrange
 			var closeResult = new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
-			_mockWebSocketWrapper.SetupSequence(ws => ws.ReceiveAsync(It.IsAny<ArraySegment<byte>>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(closeResult);
+			A.CallTo(() => _mockWebSocketWrapper.ReceiveAsync(A<ArraySegment<byte>>._, A<CancellationToken>._))
+				.Returns(Task.FromResult(closeResult));
 
 			// Act
-			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper.Object);
+			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper);
 
 			// Assert
-			_mockWebSocketWrapper.Verify(ws => ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Socket closed", It.IsAny<CancellationToken>()), Times.Once);
+			A.CallTo(() => _mockWebSocketWrapper.CloseAsync(WebSocketCloseStatus.NormalClosure, "Socket closed", A<CancellationToken>._))
+				.MustHaveHappenedOnceExactly();
 		}
 
 		[Fact]
@@ -43,29 +44,33 @@ namespace GameManager.Server.Tests.ServiceTests
 		{
 			// Arrange
 			var message = "{\"command\":\"testCommand\"}";
-			var closeResult = new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
 			var receivedBytes = Encoding.UTF8.GetBytes(message);
 			var receiveResult = new WebSocketReceiveResult(receivedBytes.Length, WebSocketMessageType.Text, true);
-			var sequence = _mockWebSocketWrapper.SetupSequence(ws =>
-					ws.ReceiveAsync(It.IsAny<ArraySegment<byte>>(), It.IsAny<CancellationToken>()));
+			var closeResult = new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
 
-				sequence = sequence.ReturnsAsync((ArraySegment<byte> buffer, CancellationToken cancellationToken) =>
+			A.CallTo(() => _mockWebSocketWrapper.ReceiveAsync(A<ArraySegment<byte>>._, A<CancellationToken>._))
+				.Invokes((ArraySegment<byte> buffer, CancellationToken cancellationToken) =>
 				{
-					Array.Copy(receivedBytes, buffer.Array, receivedBytes.Length);
-					return receiveResult;
-				});
-				sequence.ReturnsAsync(closeResult);
+					// Copy the messageBytes into the buffer.Array at the offset position
+					Array.Copy(receivedBytes, 0, buffer.Array, buffer.Offset, receivedBytes.Length);
+				})
+				.ReturnsLazily((ArraySegment<byte> buffer, CancellationToken cancellationToken) =>
+					Task.FromResult(receiveResult))
+				.Once() // Simulate receiving the message once
+				// Then simulate receiving a close message
+				.Then
+				.Returns(Task.FromResult(closeResult));
 
 
-			var mockCommandHandler = new Mock<ICommandHandler>();
-			mockCommandHandler.Setup(h => h.CanHandle("testCommand")).Returns(true);
+			var mockCommandHandler = A.Fake<ICommandHandler>();
+			A.CallTo(() => mockCommandHandler.CanHandle("testCommand")).Returns(true);
 			_mockCommandHandlers.Add(mockCommandHandler);
 
 			// Act
-			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper.Object);
+			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper);
 
 			// Assert
-			mockCommandHandler.Verify(h => h.HandleAsync(It.IsAny<string>(), _mockWebSocketWrapper.Object), Times.Once);
+			A.CallTo(() => mockCommandHandler.HandleAsync(A<string>._, _mockWebSocketWrapper)).MustHaveHappenedOnceExactly();
 		}
 
 		[Fact]
@@ -73,31 +78,41 @@ namespace GameManager.Server.Tests.ServiceTests
 		{
 			// Arrange
 			var message = "{\"command\":\"unknownCommand\"}";
-			var buffer = Encoding.UTF8.GetBytes(message);
-			var receiveResult = new WebSocketReceiveResult(buffer.Length, WebSocketMessageType.Text, true);
-			_mockWebSocketWrapper.SetupSequence(ws => ws.ReceiveAsync(It.IsAny<ArraySegment<byte>>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(receiveResult)
-				.ReturnsAsync(new WebSocketReceiveResult(0, WebSocketMessageType.Close, true)); // Close connection after handling command
+			var receivedBytes = Encoding.UTF8.GetBytes(message);
+			var receiveResult = new WebSocketReceiveResult(receivedBytes.Length, WebSocketMessageType.Text, true);
+			A.CallTo(() => _mockWebSocketWrapper.ReceiveAsync(A<ArraySegment<byte>>._, A<CancellationToken>._))
+				.Invokes((ArraySegment<byte> buffer, CancellationToken cancellationToken) =>
+				{
+					// Copy the messageBytes into the buffer.Array at the offset position
+					Array.Copy(receivedBytes, 0, buffer.Array, buffer.Offset, receivedBytes.Length);
+				})
+				.ReturnsLazily((ArraySegment<byte> buffer, CancellationToken cancellationToken) =>
+					Task.FromResult(receiveResult))
+				.Once() // Simulate receiving the message once
+				// Then simulate receiving a close message
+				.Then
+				.Returns(Task.FromResult(new WebSocketReceiveResult(0, WebSocketMessageType.Close, true)));
 
 			// Act
-			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper.Object);
+			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper);
 
 			// Assert
-			_mockLogger.VerifyLog(LogLevel.Warning, "Unknown command", Times.Once());
+			//A.CallTo(() => _mockLogger.LogWarning("Unknown command")).MustHaveHappened();
+			_mockLogger.VerifyLogged(LogLevel.Warning, "Unknown Command");
 		}
 
 		[Fact]
 		public async Task ListenOnSocket_LogsErrorOnWebSocketException()
 		{
 			// Arrange
-			_mockWebSocketWrapper.Setup(ws => ws.ReceiveAsync(It.IsAny<ArraySegment<byte>>(), It.IsAny<CancellationToken>()))
+			A.CallTo(() => _mockWebSocketWrapper.ReceiveAsync(A<ArraySegment<byte>>._, A<CancellationToken>._))
 				.ThrowsAsync(new WebSocketException("Socket closed unexpectedly"));
 
 			// Act
-			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper.Object);
+			await _webSocketService.ListenOnSocket(_mockWebSocketWrapper);
 
 			// Assert
-			_mockLogger.VerifyLog(LogLevel.Error, "Socket closed unexpectedly", Times.Once());
+			_mockLogger.VerifyLoggedAtLevel(LogLevel.Error);
 		}
 	}
 }

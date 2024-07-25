@@ -38,7 +38,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, IEnumerable<ICom
 			}
 			catch (WebSocketException ex)
 			{
-				logger.LogError("Socket closed unexpectedly - {ex}", ex.Message);
+				logger.LogError("Socket closed unexpectedly");
 				break;
 			}
 			catch (KeyNotFoundException)
