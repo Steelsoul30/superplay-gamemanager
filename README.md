@@ -72,7 +72,7 @@ var players = new Player[]
 
 This is not production ready code. It is a proof of concept.
 
-The GameManager solution is open-source and available under the [MIT License](LICENSE.md).
+The GameManager solution is open-source and available under the [MIT License](LICENSE).
 
 ---
 
