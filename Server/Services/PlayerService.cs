@@ -12,7 +12,7 @@ public class PlayerService(
 	IPlayerConnectionManager connectionManager,
 	GameContext context) : IPlayerService
 {
-	public async Task<LoginResponse> Login(string deviceId, WebSocket socket)
+	public async Task<LoginResponse> Login(string deviceId, IWebSocketWrapper socket)
 	{
 		logger.LogInformation("Login attempt");
 		var player = await context.Players.Where(p => p.DeviceID == deviceId).SingleOrDefaultAsync();

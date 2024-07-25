@@ -10,7 +10,7 @@ namespace Server.Services;
 
 public class ResourceService (GameContext context, ILogger<ResourceService> logger, IPlayerConnectionManager connectionManager): IResourceService
 {
-	public async Task<UpdateResourcesResponse> UpdateResources(string resourceType, int resourceValue, WebSocket socket)
+	public async Task<UpdateResourcesResponse> UpdateResources(string resourceType, int resourceValue, IWebSocketWrapper socket)
 	{
 		logger.LogInformation("UpdateResources attempt");
 		var players = await context.Players.ToListAsync();
@@ -70,7 +70,7 @@ public class ResourceService (GameContext context, ILogger<ResourceService> logg
 		}
 	}
 
-	public async Task<SendGiftResponse> SendGift(string resourceType, int resourceValue, int recipientId, WebSocket socket)
+	public async Task<SendGiftResponse> SendGift(string resourceType, int resourceValue, int recipientId, IWebSocketWrapper socket)
 	{
 		logger.LogInformation("SendGift attempt");
 		if (resourceValue <= 0)

@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Server.Commands;
 using Server.DB;
+using Server.Factories;
 using Server.Interfaces;
 using Server.Services;
+using Server.Wrappers;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
@@ -14,6 +16,7 @@ builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IWebSocketService, WebSocketService>();
 builder.Services.AddSingleton<IPlayerConnectionManager, PlayerConnectionManager>();
+builder.Services.AddSingleton<IWebSocketWrapperFactory, WebSocketWrapperFactory>();
 
 builder.Services.AddScoped<ICommandHandler, LoginCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, SendGiftCommandHandler>();
@@ -30,7 +33,7 @@ using (var scope = app.Services.CreateScope())
 
 app.Logger.LogInformation("Server started");
 
-app.MapGet("/", async (HttpContext context, IWebSocketService webSocketService) =>
+app.MapGet("/", async (HttpContext context, IWebSocketService webSocketService, IWebSocketWrapperFactory webSocketWrapperFactory) =>
 {
 	if (!context.WebSockets.IsWebSocketRequest)
 	{
@@ -38,9 +41,9 @@ app.MapGet("/", async (HttpContext context, IWebSocketService webSocketService) 
 		await context.Response.WriteAsync("Expected a WebSocket request");
 		return;
 	}
-
 	using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-	await webSocketService.ListenOnSocket(webSocket);
+	var socket = webSocketWrapperFactory.Create(webSocket);
+	await webSocketService.ListenOnSocket(socket);
 });
 
 app.Run();

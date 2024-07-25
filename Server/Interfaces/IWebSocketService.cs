@@ -4,5 +4,5 @@ namespace Server.Interfaces;
 
 public interface IWebSocketService
 {
-	Task ListenOnSocket (WebSocket socket);
+	Task ListenOnSocket (IWebSocketWrapper socket);
 }

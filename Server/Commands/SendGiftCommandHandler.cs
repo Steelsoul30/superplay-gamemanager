@@ -14,7 +14,7 @@ public class SendGiftCommandHandler(IResourceService resourceService, IPlayerCon
 	private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
 
 
-	public async Task HandleAsync(string data, WebSocket socket)
+	public async Task HandleAsync(string data, IWebSocketWrapper socket)
 	{
 		var sendGiftRequest = JsonSerializer.Deserialize<SendGiftRequest>(data, _jsonOptions) ?? throw new SerializationException($"Invalid request for {SendGiftCommand} command");
 		var sendGiftResponse = await resourceService.SendGift(sendGiftRequest.Payload.ResourceType, sendGiftRequest.Payload.ResourceValue, sendGiftRequest.Payload.RecipientId, socket);

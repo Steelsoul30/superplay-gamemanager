@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Text;
+using Server.Factories;
 using Server.Interfaces;
 using Shared.Helpers;
 using Shared.Models.Messages;
@@ -11,7 +12,7 @@ namespace Server.Services;
 
 public class WebSocketService(ILogger<WebSocketService> logger, IEnumerable<ICommandHandler> commandHandlers) : IWebSocketService
 {
-	public async Task ListenOnSocket(WebSocket socket)
+	public async Task ListenOnSocket(IWebSocketWrapper socket)
 	{
 		logger.LogInformation("New connection established");
 		var buffer = new byte[1024 * 4];

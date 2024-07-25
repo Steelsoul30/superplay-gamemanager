@@ -13,7 +13,7 @@ public class UpdateResourcesCommandHandler(IResourceService resourceService) : I
 	private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
 
 
-	public async Task HandleAsync(string data, WebSocket socket)
+	public async Task HandleAsync(string data, IWebSocketWrapper socket)
 	{
 		var updateRequest = JsonSerializer.Deserialize<UpdateResourcesRequest>(data, _jsonOptions) ?? throw new SerializationException($"Invalid request for {UpdateResourcesCommand} command");
 		var updateResponse = await resourceService.UpdateResources(updateRequest.Payload.ResourceType, updateRequest.Payload.ResourceValue, socket);

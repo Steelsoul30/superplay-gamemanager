@@ -7,20 +7,20 @@ namespace Server.Services;
 
 public class PlayerConnectionManager: IPlayerConnectionManager
 {
-	private static readonly ConcurrentDictionary<int, WebSocket> _playersConnectedDict = new();
+	private static readonly ConcurrentDictionary<int, IWebSocketWrapper> _playersConnectedDict = new();
 	private static readonly ConcurrentDictionary<int, SemaphoreSlim> _lockObjects = new();
 
-	public bool TryAddPlayer(int playerId, WebSocket socket)
+	public bool TryAddPlayer(int playerId, IWebSocketWrapper socket)
 	{
 		return _playersConnectedDict.TryAdd(playerId, socket);
 	}
 
-	public bool TryGetPlayerSocket(int playerId, out WebSocket? socket)
+	public bool TryGetPlayerSocket(int playerId, out IWebSocketWrapper? socket)
 	{
 		return _playersConnectedDict.TryGetValue(playerId, out socket);
 	}
 
-	public (int, string?) GetPlayerIdBySocket(WebSocket socket, IEnumerable<Player> players)
+	public (int, string?) GetPlayerIdBySocket(IWebSocketWrapper socket, IEnumerable<Player> players)
 	{
 		var player = _playersConnectedDict.FirstOrDefault(p => p.Value == socket).Key;
 		if (player == 0)

@@ -5,5 +5,5 @@ namespace Server.Interfaces;
 
 public interface IPlayerService
 {
-	Task<LoginResponse> Login(string deviceId, WebSocket socket);
+	Task<LoginResponse> Login(string deviceId, IWebSocketWrapper socket);
 }
