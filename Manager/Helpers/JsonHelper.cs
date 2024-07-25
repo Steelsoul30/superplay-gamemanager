@@ -4,7 +4,7 @@ namespace Shared.Helpers
 {
 	public static class JsonHelper
 	{
-		public static string GetElementByKey(string key, JsonElement jsonElement)
+		private static string GetElementByKey(string key, JsonElement jsonElement)
 		{
 			return jsonElement.TryGetProperty(key, out var element) 
 			? element.GetString() ?? string.Empty
